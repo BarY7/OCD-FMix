@@ -230,6 +230,8 @@ class Model_Scale(nn.Module):
         # timestep embedding
         if 'nerf' not in self.config.model.name:
             lat,latin = lat
+            lat = lat.reshape([1,8192])
+            latin = latin.reshape([1,8192])
         else:
             latin = outin
         latent = self.mlp(lat).mean(0).unsqueeze(0)
@@ -373,6 +375,8 @@ class Model(nn.Module):
         x = x.unsqueeze(1)
         if 'nerf' not in self.config.model.name:
             lat,latin = lat
+            lat = lat.reshape([1,8192])
+            latin = latin.reshape([1,8192])
             latent = self.mlp(lat).mean(0).unsqueeze(0)
             latent_in = self.mlp_latin(latin).mean(0).unsqueeze(0)
             out_in = self.mlp_out(out)
