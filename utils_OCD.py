@@ -55,6 +55,9 @@ def overfitting_batch_nerf(bmodel=None,weight_name='',bias_name='',
 batch=None, loss_fn=None,n_iteration=10,lr=0.5e-4,verbose=False):
     base_model = copy.deepcopy(bmodel)
     param_weight = base_model.get_parameter(weight_name+'.weight')
+    if(weight_name=="layer4.1.bn2"):
+     #fmix
+        dmodel_original_weight = dmodel_original_weight.reshape([2,256])
     opt = torch.optim.Adam([
                 {'params': param_weight},
             ], lr=lr)
@@ -86,6 +89,9 @@ batch=None, loss_fn=None,n_iteration=10,lr=0.5e-4,verbose=False):
         opt.step()
 
     weight = base_model.get_parameter(weight_name+'.weight').detach()
+    if(weight_name=="layer4.1.bn2"):
+     #fmix
+        weight = dmodel_original_weight.reshape([2,256])
     return weight,hfirst,out_first
 
 
@@ -132,6 +138,9 @@ batch=None, loss_fn=None,n_iteration=10,lr=0.5e-4,verbose=False):
         loss.backward()
         opt.step()
     weight = base_model.get_parameter(weight_name+'.weight').detach()
+    if(weight_name=="layer4.1.bn2"):
+     #fmix
+        weight = weight.reshape([2,256])
     return weight,hfirst,out
 
 def check_ps_nerf(named_parameter='',bmodel=None,w=0,
@@ -195,14 +204,23 @@ def check_ps(named_parameter='',bmodel=None,w=0,
 batch=None, loss_fn=None,std=0,dopt=0):
     model = copy.deepcopy(bmodel)
     r = copy.deepcopy( model.get_parameter(named_parameter+'.weight').data)
+    if(named_parameter=="layer4.1.bn2"):
+     #fmix
+        r = r.reshape([2,256])
     predicted_labels,h = model(batch['input'])
     loss = loss_fn(predicted_labels, batch['output'].long())
     lbase = loss.item()
-    model.get_parameter(named_parameter+'.weight').data += dopt.squeeze()
+    param = model.get_parameter(named_parameter+'.weight')
+    if(named_parameter == "layer4.1.bn2"):
+        param = param.reshape([2,256])
+    param.data += dopt.squeeze()
     predicted_labels,h = model(batch['input'])
     loss = loss_fn(predicted_labels, batch['output'].long())
     loptimal = loss.item()
-    model.get_parameter(named_parameter+'.weight').data = r + std*w.squeeze().to('cuda')
+    param = model.get_parameter(named_parameter+'.weight')
+    if(named_parameter == "layer4.1.bn2"):
+        param = param.reshape([2,256])
+    param.data = r + std*w.squeeze().to('cuda')
     predicted_labels,h = model(batch['input'])
     loss = loss_fn(predicted_labels, batch['output'].long())
     ldiffusion = loss.item()

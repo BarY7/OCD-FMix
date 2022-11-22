@@ -105,6 +105,10 @@ ema_helper.register(diffusion_model)
 weight_name = config.model.weight_name
 dmodel_original_weight = deepcopy(model.get_parameter(weight_name+'.weight'))
 mat_shape = dmodel_original_weight.shape
+if(args.datatype == "fmix" and weight_name=="layer4.1.bn2"):
+     #fmix
+    dmodel_original_weight = dmodel_original_weight.reshape([2,256])
+    mat_shape = dmodel_original_weight.shape
 assert len(mat_shape) == 2, "Weight to overfit should be a matrix !"
 padding = []
 for s in mat_shape:

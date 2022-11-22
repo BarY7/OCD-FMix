@@ -42,6 +42,9 @@ def train(args, config, optimizer, optimizer_scale,
     n_overfitting = config.overfitting.n_overfitting
     step = 0
     dmodel_original_weight = deepcopy(model.get_parameter(weight_name+'.weight'))
+    if(args.datatype == "fmix" and weight_name=="layer4.1.bn2"):
+     #fmix
+        dmodel_original_weight = dmodel_original_weight.reshape([2,256])
     if args.precompute_all == 1:
         print('precomputation of overfitting to save time starts')
         ws,hs,outs = [],[],[]

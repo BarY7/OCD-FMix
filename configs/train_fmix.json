@@ -6,7 +6,7 @@
         "loss": "ce"
     },
     "model": {
-        "weight_name": "linear",
+        "weight_name": "layer4.1.bn2",
         "name":"fmix"
     },
     "checkpoint": {
