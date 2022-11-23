@@ -87,7 +87,8 @@ if args.resume_training:
     diffusion_model.load_state_dict(torch.load(args.diffusion_model_path))
     scale_model.load_state_dict(torch.load(args.scale_model_path))
 train_loader, test_loader, model = wrapper_dataset(config, args, device)
-# model.load_state_dict(torch.load(module_path, map_location=device))
+state = torch.load(module_path, map_location=device)
+model.load_state_dict(state["model"])
 model = model.to(device)
 if config.training.loss == 'mse':
     opt_error_loss = torch.nn.MSELoss()
