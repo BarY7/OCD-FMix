@@ -11,19 +11,7 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "args": [
-        "-e","0",
-        "-pb",
-        "./base_models/model_1_FMIX_fashion.pt",
-        "-pc",
-        "./configs/train_fmix.json",
-        "-pdtr",
-        "./fashdata",
-        "-pdts",
-        "./fashdata",
-        "-dt",
-        "fmix",
-        "-prc",
-        "0",
+        "-e","0"
       ],
       "justMyCode": true
     }
