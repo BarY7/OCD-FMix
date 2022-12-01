@@ -31,7 +31,7 @@
 
     },
     "overfitting": {
-        "lr_overfitting": 5e-4,
+        "lr_overfitting": 3e-3,
         "n_overfitting": 3
     }
 }
