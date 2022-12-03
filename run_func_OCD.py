@@ -87,7 +87,8 @@ if args.resume_training:
     diffusion_model.load_state_dict(torch.load(args.diffusion_model_path))
     scale_model.load_state_dict(torch.load(args.scale_model_path))
 train_loader, test_loader, model = wrapper_dataset(config, args, device)
-# model.load_state_dict(torch.load(module_path, map_location=device))
+state = torch.load(module_path, map_location=device)
+model.load_state_dict(state["model"])
 model = model.to(device)
 if config.training.loss == 'mse':
     opt_error_loss = torch.nn.MSELoss()
@@ -104,6 +105,7 @@ ema_helper.register(diffusion_model)
 ################################################# Check if weight is OK ##########################
 weight_name = config.model.weight_name
 dmodel_original_weight = deepcopy(model.get_parameter(weight_name+'.weight'))
+dmodel_original_weight = dmodel_original_weight.reshape([1,512])
 mat_shape = dmodel_original_weight.shape
 assert len(mat_shape) == 2, "Weight to overfit should be a matrix !"
 padding = []
@@ -141,6 +143,10 @@ else:
 
 print('*'*100)
 ldiff,lopt,lbaseline = 0,0,0
+total = 0
+good_diff = 0
+good_base = 0
+model.eval()
 for idx, batch in enumerate(test_loader):
     batch['input'] = batch['input'].to(device)
     batch['output'] = batch['output'].to(device)
@@ -161,7 +167,7 @@ for idx, batch in enumerate(test_loader):
         encoding_out = outin
     with torch.no_grad():
         std = scale_model(hfirst,encoding_out)
-    ldiffusion, loptimal, lbase, wdiff = generalized_steps(
+    ldiffusion, loptimal, lbase, wdiff, predicted_diff, predicted_base = generalized_steps(
         named_parameter=weight_name, numstep=config.diffusion.diffusion_num_steps_eval,
         x=(diff_weight.unsqueeze(0),hfirst,encoding_out), model=diffusion_model,
         bmodel=model, batch=batch, loss_fn=opt_error_loss,
@@ -171,4 +177,10 @@ for idx, batch in enumerate(test_loader):
     ldiff += ldiffusion
     lopt += loptimal
     lbaseline += lbase
+    total += 1
+    if(predicted_diff.argmax() == batch['output'][0]):
+        good_diff += 1
+    if(predicted_base.argmax() == batch['output'][0]):
+        good_base += 1
     print(f"\rBaseline loss {lbaseline/(idx+1)}, Overfitted loss {lopt/(idx+1)}, Diffusion loss {ldiff/(idx+1)}",end='')
+    print(f"Diffusion acc: {good_diff/total} Base acc: {good_base/total}")
