@@ -108,6 +108,8 @@ def train(args, config, optimizer, optimizer_scale,
             scale = scale_model(hfirst,encoding_out) # estimate scale
             estimated_error = estimated_error[:,0,padding[0][0]:padding[0][0]+mat_shape[0],padding[1][0]:padding[1][0]+mat_shape[1]] #remove padding
             ascale = diff_weight.view(-1).std() # calculate optimal scale
+            print("ASCALE")
+            print(ascale)
             lscale = 10*torch.log10(((scale.squeeze()-ascale).square())/(ascale.square()+1e-12) + 1e-8) # scale loss 
             lossdiff = (loss_fn(estimated_error , error))/ grad_accum  # diffusion loss
             difflosslogger += lossdiff.item()

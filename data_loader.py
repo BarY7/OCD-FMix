@@ -6,12 +6,14 @@ from nerf_utils.tiny_nerf import VeryTinyNerfModel
 from torchvision.datasets import mnist, imagenet
 from torchvision.datasets import FashionMNIST
 from torchvision import transforms
-from torchvision.models import efficientnet_b0
+# from torchvision.models import efficientnet_b0
 import torchvision.models
 import Lenet5
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from copy import deepcopy
+from torchvision.transforms import Compose, Normalize, ToTensor, RandomCrop, RandomHorizontalFlip, RandomResizedCrop, \
+    Resize, CenterCrop
 import FMix
 
 
@@ -103,10 +105,15 @@ def wrapper_dataset(config, args, device):
                     [
                     transforms.ToTensor()
                     ])
-        train_ds = FashionMNIST("fashdata", train=True, download=True, transform=ToTensor())
-        test_ds = FashionMNIST("fashdata", train=False, download=True, transform=ToTensor())
+
+        normalise = Normalize((0.1307,), (0.3081,))
+        base = [ToTensor(), normalise]
+        transform_test = Compose(base)
+
+        train_ds = FashionMNIST("fashdata", train=True, download=True, transform=transform_test)
+        test_ds = FashionMNIST("fashdata", train=False, download=True, transform=transform_test)
         train_loader = DataLoader(train_ds, batch_size=1, shuffle=True)
-        test_loader = DataLoader(train_ds,batch_size=1)
+        test_loader = DataLoader(test_ds,batch_size=1)
 
         # train_dataset = mnist.MNIST(
         #         "\data\mnist", train=True, download=True, transform=ToTensor())
